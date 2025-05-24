@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import ChatButton from './ChatButton';
 import { 
   LayoutDashboard, 
   ShoppingCart, 
@@ -126,6 +126,9 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
       </div>
+      
+      {/* Chat Button */}
+      <ChatButton />
     </div>
   );
 };
