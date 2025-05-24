@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { 
   LayoutDashboard, 
   ShoppingCart, 
@@ -21,6 +22,8 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
 
   const navigationItems = [
@@ -32,6 +35,20 @@ const Layout = ({ children }: LayoutProps) => {
     { path: '/reports', icon: FileText, label: 'Reports' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
+
+  const handleLogout = () => {
+    // Clear any stored authentication data
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+    
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    
+    // Redirect to login page
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -78,6 +95,7 @@ const Layout = ({ children }: LayoutProps) => {
           <Button 
             variant="ghost" 
             className="w-full flex items-center justify-start text-gray-600 hover:text-gray-900"
+            onClick={handleLogout}
           >
             <LogOut className="h-5 w-5" />
             {isSidebarOpen && <span className="ml-3">Logout</span>}
@@ -96,6 +114,10 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-sm text-gray-600">Welcome, Admin</div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </header>
 
