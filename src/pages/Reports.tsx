@@ -3,16 +3,27 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Calendar, TrendingUp } from 'lucide-react';
+import { FileText, Download, Calendar, TrendingUp, FileExcel } from 'lucide-react';
+import { downloadReportAsExcel, type ReportData } from '@/utils/excelUtils';
+import { toast } from '@/components/ui/sonner';
 
 const Reports = () => {
-  const reports = [
-    { name: 'Daily Sales Report', description: 'Sales summary for today', type: 'daily', status: 'ready' },
-    { name: 'Weekly Revenue Report', description: 'Revenue analysis for this week', type: 'weekly', status: 'generating' },
-    { name: 'Monthly Inventory Report', description: 'Inventory status for this month', type: 'monthly', status: 'ready' },
-    { name: 'Customer Analytics', description: 'Customer behavior insights', type: 'analytics', status: 'ready' },
-    { name: 'Product Performance', description: 'Top and bottom performing products', type: 'products', status: 'ready' },
+  const reports: ReportData[] = [
+    { name: 'Daily Sales Report', type: 'daily' },
+    { name: 'Weekly Revenue Report', type: 'weekly' },
+    { name: 'Monthly Inventory Report', type: 'monthly' },
+    { name: 'Customer Analytics', type: 'analytics' },
+    { name: 'Product Performance', type: 'products' },
   ];
+
+  const handleDownload = (report: ReportData) => {
+    try {
+      downloadReportAsExcel(report);
+      toast(`${report.name} downloaded successfully!`);
+    } catch (error) {
+      toast(`Failed to download ${report.name}. Please try again.`);
+    }
+  };
 
   return (
     <Layout>
@@ -60,7 +71,7 @@ const Reports = () => {
         <Card>
           <CardHeader>
             <CardTitle>Available Reports</CardTitle>
-            <CardDescription>Generate and download business intelligence reports</CardDescription>
+            <CardDescription>Generate and download business intelligence reports in Excel format</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -76,13 +87,15 @@ const Reports = () => {
                     </div>
                     <div>
                       <h4 className="font-medium">{report.name}</h4>
-                      <p className="text-sm text-gray-600">{report.description}</p>
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                        report.status === 'ready' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {report.status === 'ready' ? 'Ready' : 'Generating...'}
+                      <p className="text-sm text-gray-600">
+                        {report.type === 'daily' && 'Sales summary for today'}
+                        {report.type === 'weekly' && 'Revenue analysis for this week'}
+                        {report.type === 'monthly' && 'Inventory status for this month'}
+                        {report.type === 'analytics' && 'Customer behavior insights'}
+                        {report.type === 'products' && 'Top and bottom performing products'}
+                      </p>
+                      <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        Ready
                       </span>
                     </div>
                   </div>
@@ -90,10 +103,10 @@ const Reports = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      disabled={report.status !== 'ready'}
+                      onClick={() => handleDownload(report)}
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
+                      <FileExcel className="h-4 w-4 mr-2 text-green-600" />
+                      Download Excel
                     </Button>
                   </div>
                 </div>
