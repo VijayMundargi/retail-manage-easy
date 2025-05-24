@@ -1,9 +1,8 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Calendar, TrendingUp, FileExcel } from 'lucide-react';
+import { FileText, Download, Calendar, TrendingUp, File } from 'lucide-react';
 import { downloadReportAsExcel, type ReportData } from '@/utils/excelUtils';
 import { toast } from '@/components/ui/sonner';
 
@@ -105,7 +104,7 @@ const Reports = () => {
                       size="sm"
                       onClick={() => handleDownload(report)}
                     >
-                      <FileExcel className="h-4 w-4 mr-2 text-green-600" />
+                      <File className="h-4 w-4 mr-2 text-green-600" />
                       Download Excel
                     </Button>
                   </div>
