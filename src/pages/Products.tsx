@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, Search, Edit, Trash, Plus } from 'lucide-react';
+import { Package, Search, Edit, Trash, Plus, Tag, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Product {
@@ -27,6 +27,10 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const [categories, setCategories] = useState(['Electronics', 'Accessories', 'Office Supplies', 'Furniture']);
 
   const [products] = useState<Product[]>([
     {
@@ -90,8 +94,6 @@ const Products = () => {
     description: ''
   });
 
-  const categories = ['Electronics', 'Accessories', 'Office Supplies', 'Furniture'];
-
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.sku.toLowerCase().includes(searchTerm.toLowerCase());
@@ -132,6 +134,56 @@ const Products = () => {
     });
   };
 
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a category name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (categories.includes(newCategoryName.trim())) {
+      toast({
+        title: "Validation Error",
+        description: "This category already exists.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCategories([...categories, newCategoryName.trim()]);
+    toast({
+      title: "Category Added",
+      description: `${newCategoryName} has been added successfully.`,
+    });
+    setNewCategoryName('');
+    setIsCategoryDialogOpen(false);
+  };
+
+  const handleDeleteCategory = (categoryToDelete: string) => {
+    const productsInCategory = products.filter(product => product.category === categoryToDelete);
+    
+    if (productsInCategory.length > 0) {
+      toast({
+        title: "Cannot Delete Category",
+        description: `Cannot delete category "${categoryToDelete}" because it contains ${productsInCategory.length} product(s).`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCategories(categories.filter(category => category !== categoryToDelete));
+    if (categoryFilter === categoryToDelete) {
+      setCategoryFilter('all');
+    }
+    toast({
+      title: "Category Deleted",
+      description: `${categoryToDelete} has been deleted successfully.`,
+    });
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -141,89 +193,141 @@ const Products = () => {
             <h1 className="text-2xl font-bold text-gray-900">Products</h1>
             <p className="text-gray-600">Manage your product inventory</p>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
-                <DialogDescription>
-                  Fill in the product details below.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="productName">Product Name*</Label>
-                  <Input
-                    id="productName"
-                    placeholder="Enter product name"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sku">SKU*</Label>
-                  <Input
-                    id="sku"
-                    placeholder="Enter SKU"
-                    value={newProduct.sku}
-                    onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category*</Label>
-                  <Select onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
+          <div className="flex gap-2">
+            <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Manage Categories
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Manage Categories</DialogTitle>
+                  <DialogDescription>
+                    Add new categories or delete existing ones.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryName">New Category Name</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="categoryName"
+                        placeholder="Enter category name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                      />
+                      <Button onClick={handleAddCategory}>
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Existing Categories</Label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {categories.map((category) => (
+                        <div key={category} className="flex items-center justify-between p-2 border rounded">
+                          <span className="text-sm">{category}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteCategory(category)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price">Price*</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      placeholder="0.00"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stock">Stock</Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      placeholder="0"
-                      value={newProduct.stock}
-                      onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-                    />
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    placeholder="Product description"
-                    value={newProduct.description}
-                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                  />
-                </div>
-                <Button onClick={handleAddProduct} className="w-full">
+              </DialogContent>
+            </Dialog>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
                   Add Product
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                  <DialogDescription>
+                    Fill in the product details below.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="productName">Product Name*</Label>
+                    <Input
+                      id="productName"
+                      placeholder="Enter product name"
+                      value={newProduct.name}
+                      onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sku">SKU*</Label>
+                    <Input
+                      id="sku"
+                      placeholder="Enter SKU"
+                      value={newProduct.sku}
+                      onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category*</Label>
+                    <Select onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price*</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        placeholder="0.00"
+                        value={newProduct.price}
+                        onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="stock">Stock</Label>
+                      <Input
+                        id="stock"
+                        type="number"
+                        placeholder="0"
+                        value={newProduct.stock}
+                        onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      placeholder="Product description"
+                      value={newProduct.description}
+                      onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                    />
+                  </div>
+                  <Button onClick={handleAddProduct} className="w-full">
+                    Add Product
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         {/* Filters */}
