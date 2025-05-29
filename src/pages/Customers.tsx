@@ -4,14 +4,29 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Users, Star, ShoppingBag, Calendar } from 'lucide-react';
+import { useCustomers } from '@/hooks/useCustomers';
 
 const Customers = () => {
-  const customers = [
-    { id: 'C001', name: 'John Doe', email: 'john@example.com', phone: '+1 234 567 8900', totalOrders: 15, totalSpent: 2400, lastOrder: '2024-01-20', status: 'active' },
-    { id: 'C002', name: 'Jane Smith', email: 'jane@example.com', phone: '+1 234 567 8901', totalOrders: 8, totalSpent: 1200, lastOrder: '2024-01-19', status: 'active' },
-    { id: 'C003', name: 'Bob Johnson', email: 'bob@example.com', phone: '+1 234 567 8902', totalOrders: 23, totalSpent: 4500, lastOrder: '2024-01-18', status: 'vip' },
-    { id: 'C004', name: 'Alice Brown', email: 'alice@example.com', phone: '+1 234 567 8903', totalOrders: 3, totalSpent: 180, lastOrder: '2024-01-15', status: 'new' },
-  ];
+  const { customers, isLoading } = useCustomers();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const totalCustomers = customers.length;
+  const vipCustomers = customers.filter(customer => customer.email?.includes('vip')).length;
+  const thisWeekCustomers = customers.filter(customer => {
+    const createdAt = new Date(customer.created_at);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return createdAt >= weekAgo;
+  }).length;
 
   return (
     <Layout>
@@ -29,8 +44,8 @@ const Customers = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">573</div>
-              <p className="text-xs text-muted-foreground">+48 this month</p>
+              <div className="text-2xl font-bold">{totalCustomers}</div>
+              <p className="text-xs text-muted-foreground">+{thisWeekCustomers} this week</p>
             </CardContent>
           </Card>
           <Card>
@@ -39,7 +54,7 @@ const Customers = () => {
               <Star className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">45</div>
+              <div className="text-2xl font-bold">{vipCustomers}</div>
               <p className="text-xs text-muted-foreground">High-value customers</p>
             </CardContent>
           </Card>
@@ -59,8 +74,8 @@ const Customers = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">+33% from last week</p>
+              <div className="text-2xl font-bold">{thisWeekCustomers}</div>
+              <p className="text-xs text-muted-foreground">New registrations</p>
             </CardContent>
           </Card>
         </div>
@@ -72,30 +87,34 @@ const Customers = () => {
             <CardDescription>All registered customers and their details</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {customers.map((customer) => (
-                <div key={customer.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-medium">{customer.name}</h4>
-                      <Badge variant={
-                        customer.status === 'vip' ? 'default' :
-                        customer.status === 'new' ? 'secondary' : 'outline'
-                      }>
-                        {customer.status.toUpperCase()}
-                      </Badge>
+            {customers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No customers found. Add some customers to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {customers.map((customer) => (
+                  <div key={customer.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h4 className="font-medium">{customer.name}</h4>
+                        <Badge variant="outline">
+                          CUSTOMER
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{customer.email || 'No email'}</p>
+                      <p className="text-sm text-gray-500">{customer.phone || 'No phone'}</p>
                     </div>
-                    <p className="text-sm text-gray-600">{customer.email}</p>
-                    <p className="text-sm text-gray-500">{customer.phone}</p>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">
+                        Added: {new Date(customer.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold">${customer.totalSpent}</p>
-                    <p className="text-sm text-gray-600">{customer.totalOrders} orders</p>
-                    <p className="text-xs text-gray-500">Last: {customer.lastOrder}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

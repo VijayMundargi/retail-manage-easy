@@ -3,15 +3,31 @@ import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, AlertTriangle, TrendingDown, RefreshCw } from 'lucide-react';
+import { useProducts } from '@/hooks/useProducts';
 
 const Inventory = () => {
-  const inventoryData = [
-    { name: 'Laptop Pro 15"', currentStock: 25, minStock: 10, status: 'good' },
-    { name: 'Wireless Mouse', currentStock: 150, minStock: 50, status: 'good' },
-    { name: 'USB-C Cable', currentStock: 7, minStock: 20, status: 'low' },
-    { name: '24" Monitor', currentStock: 40, minStock: 15, status: 'good' },
-    { name: 'Mechanical Keyboard', currentStock: 0, minStock: 10, status: 'out' },
-  ];
+  const { products, isLoading } = useProducts();
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const totalItems = products.reduce((sum, product) => sum + (product.stock || 0), 0);
+  const lowStockItems = products.filter(product => (product.stock || 0) < 10);
+  const outOfStockItems = products.filter(product => (product.stock || 0) === 0);
+  const reorderRequired = products.filter(product => (product.stock || 0) < 5);
+
+  const getStockStatus = (stock: number) => {
+    if (stock === 0) return { status: 'out', color: 'text-red-600', bgColor: 'bg-red-500', label: 'Out of Stock' };
+    if (stock < 10) return { status: 'low', color: 'text-orange-600', bgColor: 'bg-orange-500', label: 'Low Stock' };
+    return { status: 'good', color: 'text-green-600', bgColor: 'bg-green-500', label: 'In Stock' };
+  };
 
   return (
     <Layout>
@@ -29,7 +45,7 @@ const Inventory = () => {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1,284</div>
+              <div className="text-2xl font-bold">{totalItems.toLocaleString()}</div>
             </CardContent>
           </Card>
           <Card>
@@ -38,7 +54,7 @@ const Inventory = () => {
               <AlertTriangle className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">12</div>
+              <div className="text-2xl font-bold text-orange-600">{lowStockItems.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -47,7 +63,7 @@ const Inventory = () => {
               <TrendingDown className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">3</div>
+              <div className="text-2xl font-bold text-red-600">{outOfStockItems.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -56,7 +72,7 @@ const Inventory = () => {
               <RefreshCw className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">8</div>
+              <div className="text-2xl font-bold text-blue-600">{reorderRequired.length}</div>
             </CardContent>
           </Card>
         </div>
@@ -68,32 +84,38 @@ const Inventory = () => {
             <CardDescription>Current inventory status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {inventoryData.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.name}</h4>
-                    <p className="text-sm text-gray-600">Min stock: {item.minStock}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold">{item.currentStock} units</p>
-                      <p className={`text-sm ${
-                        item.status === 'good' ? 'text-green-600' :
-                        item.status === 'low' ? 'text-orange-600' : 'text-red-600'
-                      }`}>
-                        {item.status === 'good' ? 'In Stock' :
-                         item.status === 'low' ? 'Low Stock' : 'Out of Stock'}
-                      </p>
+            {products.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No products found. Add some products to see inventory.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {products.map((product) => {
+                  const stock = product.stock || 0;
+                  const stockInfo = getStockStatus(stock);
+                  
+                  return (
+                    <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{product.name}</h4>
+                        <p className="text-sm text-gray-600">SKU: {product.sku}</p>
+                        <p className="text-sm text-gray-600">Category: {product.categories?.name || 'Uncategorized'}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-semibold">{stock} units</p>
+                          <p className={`text-sm ${stockInfo.color}`}>
+                            {stockInfo.label}
+                          </p>
+                        </div>
+                        <div className={`w-3 h-3 rounded-full ${stockInfo.bgColor}`} />
+                      </div>
                     </div>
-                    <div className={`w-3 h-3 rounded-full ${
-                      item.status === 'good' ? 'bg-green-500' :
-                      item.status === 'low' ? 'bg-orange-500' : 'bg-red-500'
-                    }`} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
