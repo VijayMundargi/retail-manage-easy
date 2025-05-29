@@ -8,87 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Package, Search, Edit, Trash, Plus, Tag, X } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: 'active' | 'inactive';
-  description: string;
-}
+import { Package, Search, Edit, Trash, Plus, Tag, X, Loader2 } from 'lucide-react';
+import { useProducts } from '@/hooks/useProducts';
+import { useCategories } from '@/hooks/useCategories';
 
 const Products = () => {
-  const { toast } = useToast();
+  const { products, isLoading, createProduct, updateProduct, deleteProduct } = useProducts();
+  const { categories, createCategory, deleteCategory } = useCategories();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-
-  const [categories, setCategories] = useState(['Electronics', 'Accessories', 'Office Supplies', 'Furniture']);
-
-  const [products] = useState<Product[]>([
-    {
-      id: '1',
-      name: 'Laptop Pro 15"',
-      sku: 'LP-001',
-      category: 'Electronics',
-      price: 1500,
-      stock: 25,
-      status: 'active',
-      description: 'High-performance laptop for professionals'
-    },
-    {
-      id: '2',
-      name: 'Wireless Mouse',
-      sku: 'WM-002',
-      category: 'Electronics',
-      price: 50,
-      stock: 150,
-      status: 'active',
-      description: 'Ergonomic wireless mouse'
-    },
-    {
-      id: '3',
-      name: 'USB-C Cable',
-      sku: 'UC-003',
-      category: 'Accessories',
-      price: 15,
-      stock: 7,
-      status: 'active',
-      description: 'High-speed USB-C charging cable'
-    },
-    {
-      id: '4',
-      name: '24" Monitor',
-      sku: 'MN-004',
-      category: 'Electronics',
-      price: 300,
-      stock: 40,
-      status: 'active',
-      description: '4K resolution monitor'
-    },
-    {
-      id: '5',
-      name: 'Mechanical Keyboard',
-      sku: 'KB-005',
-      category: 'Electronics',
-      price: 80,
-      stock: 0,
-      status: 'inactive',
-      description: 'RGB mechanical gaming keyboard'
-    }
-  ]);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
 
   const [newProduct, setNewProduct] = useState({
     name: '',
     sku: '',
-    category: '',
+    category_id: '',
     price: '',
     stock: '',
     description: ''
@@ -97,92 +35,105 @@ const Products = () => {
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || product.category_id === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddProduct = () => {
-    if (!newProduct.name || !newProduct.sku || !newProduct.category || !newProduct.price) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
+  const handleAddProduct = async () => {
+    if (!newProduct.name || !newProduct.sku || !newProduct.category_id || !newProduct.price) {
       return;
     }
 
-    toast({
-      title: "Product Added",
-      description: `${newProduct.name} has been added successfully.`,
-    });
-
-    setNewProduct({
-      name: '',
-      sku: '',
-      category: '',
-      price: '',
-      stock: '',
-      description: ''
-    });
-    setIsAddDialogOpen(false);
-  };
-
-  const handleDeleteProduct = (productName: string) => {
-    toast({
-      title: "Product Deleted",
-      description: `${productName} has been removed from inventory.`,
-    });
-  };
-
-  const handleAddCategory = () => {
-    if (!newCategoryName.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a category name.",
-        variant: "destructive",
+    try {
+      await createProduct.mutateAsync({
+        name: newProduct.name,
+        sku: newProduct.sku,
+        category_id: newProduct.category_id,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock) || 0,
+        description: newProduct.description || null
       });
-      return;
-    }
 
-    if (categories.includes(newCategoryName.trim())) {
-      toast({
-        title: "Validation Error",
-        description: "This category already exists.",
-        variant: "destructive",
+      setNewProduct({
+        name: '',
+        sku: '',
+        category_id: '',
+        price: '',
+        stock: '',
+        description: ''
       });
-      return;
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating product:', error);
     }
-
-    setCategories([...categories, newCategoryName.trim()]);
-    toast({
-      title: "Category Added",
-      description: `${newCategoryName} has been added successfully.`,
-    });
-    setNewCategoryName('');
-    setIsCategoryDialogOpen(false);
   };
 
-  const handleDeleteCategory = (categoryToDelete: string) => {
-    const productsInCategory = products.filter(product => product.category === categoryToDelete);
+  const handleEditProduct = async () => {
+    if (!editingProduct) return;
+
+    try {
+      await updateProduct.mutateAsync({
+        id: editingProduct.id,
+        name: editingProduct.name,
+        sku: editingProduct.sku,
+        category_id: editingProduct.category_id,
+        price: parseFloat(editingProduct.price),
+        stock: parseInt(editingProduct.stock) || 0,
+        description: editingProduct.description || null
+      });
+
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await deleteProduct.mutateAsync(productId);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    try {
+      await createCategory.mutateAsync({ name: newCategoryName.trim() });
+      setNewCategoryName('');
+      setIsCategoryDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating category:', error);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    const productsInCategory = products.filter(product => product.category_id === categoryId);
     
     if (productsInCategory.length > 0) {
-      toast({
-        title: "Cannot Delete Category",
-        description: `Cannot delete category "${categoryToDelete}" because it contains ${productsInCategory.length} product(s).`,
-        variant: "destructive",
-      });
       return;
     }
 
-    setCategories(categories.filter(category => category !== categoryToDelete));
-    if (categoryFilter === categoryToDelete) {
-      setCategoryFilter('all');
+    try {
+      await deleteCategory.mutateAsync(categoryId);
+      if (categoryFilter === categoryId) {
+        setCategoryFilter('all');
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
     }
-    toast({
-      title: "Category Deleted",
-      description: `${categoryToDelete} has been deleted successfully.`,
-    });
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-96">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -218,8 +169,8 @@ const Products = () => {
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
                       />
-                      <Button onClick={handleAddCategory}>
-                        <Plus className="h-4 w-4" />
+                      <Button onClick={handleAddCategory} disabled={createCategory.isPending}>
+                        {createCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                       </Button>
                     </div>
                   </div>
@@ -227,15 +178,16 @@ const Products = () => {
                     <Label>Existing Categories</Label>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
                       {categories.map((category) => (
-                        <div key={category} className="flex items-center justify-between p-2 border rounded">
-                          <span className="text-sm">{category}</span>
+                        <div key={category.id} className="flex items-center justify-between p-2 border rounded">
+                          <span className="text-sm">{category.name}</span>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteCategory(category)}
+                            onClick={() => handleDeleteCategory(category.id)}
                             className="text-red-600 hover:text-red-700"
+                            disabled={deleteCategory.isPending}
                           >
-                            <X className="h-4 w-4" />
+                            {deleteCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                           </Button>
                         </div>
                       ))}
@@ -279,13 +231,13 @@ const Products = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="category">Category*</Label>
-                    <Select onValueChange={(value) => setNewProduct({...newProduct, category: value})}>
+                    <Select onValueChange={(value) => setNewProduct({...newProduct, category_id: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                          <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -297,6 +249,7 @@ const Products = () => {
                         id="price"
                         type="number"
                         placeholder="0.00"
+                        step="0.01"
                         value={newProduct.price}
                         onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
                       />
@@ -321,7 +274,8 @@ const Products = () => {
                       onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
                     />
                   </div>
-                  <Button onClick={handleAddProduct} className="w-full">
+                  <Button onClick={handleAddProduct} className="w-full" disabled={createProduct.isPending}>
+                    {createProduct.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Add Product
                   </Button>
                 </div>
@@ -350,7 +304,7 @@ const Products = () => {
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                    <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -377,7 +331,9 @@ const Products = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Category:</span>
-                  <Badge variant="outline">{product.category}</Badge>
+                  <Badge variant="outline">
+                    {product.categories?.name || 'No Category'}
+                  </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Price:</span>
@@ -393,7 +349,12 @@ const Products = () => {
                   <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
                 )}
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => setEditingProduct(product)}
+                  >
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
@@ -401,15 +362,99 @@ const Products = () => {
                     variant="outline" 
                     size="sm" 
                     className="text-red-600 hover:text-red-700"
-                    onClick={() => handleDeleteProduct(product.name)}
+                    onClick={() => handleDeleteProduct(product.id)}
+                    disabled={deleteProduct.isPending}
                   >
-                    <Trash className="h-4 w-4" />
+                    {deleteProduct.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash className="h-4 w-4" />}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {/* Edit Product Dialog */}
+        <Dialog open={!!editingProduct} onOpenChange={() => setEditingProduct(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>
+                Update the product details below.
+              </DialogDescription>
+            </DialogHeader>
+            {editingProduct && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editProductName">Product Name*</Label>
+                  <Input
+                    id="editProductName"
+                    placeholder="Enter product name"
+                    value={editingProduct.name}
+                    onChange={(e) => setEditingProduct({...editingProduct, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editSku">SKU*</Label>
+                  <Input
+                    id="editSku"
+                    placeholder="Enter SKU"
+                    value={editingProduct.sku}
+                    onChange={(e) => setEditingProduct({...editingProduct, sku: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editCategory">Category*</Label>
+                  <Select value={editingProduct.category_id} onValueChange={(value) => setEditingProduct({...editingProduct, category_id: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editPrice">Price*</Label>
+                    <Input
+                      id="editPrice"
+                      type="number"
+                      placeholder="0.00"
+                      step="0.01"
+                      value={editingProduct.price}
+                      onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editStock">Stock</Label>
+                    <Input
+                      id="editStock"
+                      type="number"
+                      placeholder="0"
+                      value={editingProduct.stock}
+                      onChange={(e) => setEditingProduct({...editingProduct, stock: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editDescription">Description</Label>
+                  <Input
+                    id="editDescription"
+                    placeholder="Product description"
+                    value={editingProduct.description || ''}
+                    onChange={(e) => setEditingProduct({...editingProduct, description: e.target.value})}
+                  />
+                </div>
+                <Button onClick={handleEditProduct} className="w-full" disabled={updateProduct.isPending}>
+                  {updateProduct.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Update Product
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {filteredProducts.length === 0 && (
           <Card>

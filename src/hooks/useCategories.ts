@@ -4,26 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
 
-export const useProducts = () => {
+export const useCategories = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: products = [], isLoading, error } = useQuery({
-    queryKey: ['products', user?.id],
+  const { data: categories = [], isLoading, error } = useQuery({
+    queryKey: ['categories', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
       const { data, error } = await supabase
-        .from('products')
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          )
-        `)
+        .from('categories')
+        .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true });
 
       if (error) throw error;
       return data || [];
@@ -31,66 +25,56 @@ export const useProducts = () => {
     enabled: !!user
   });
 
-  const createProduct = useMutation({
-    mutationFn: async (productData: any) => {
+  const createCategory = useMutation({
+    mutationFn: async (categoryData: { name: string }) => {
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from('products')
-        .insert([{ ...productData, user_id: user.id }])
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          )
-        `)
+        .from('categories')
+        .insert([{ ...categoryData, user_id: user.id }])
+        .select()
         .single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast('Product created successfully!');
+      toast('Category created successfully!');
     },
     onError: (error: any) => {
-      toast(`Failed to create product: ${error.message}`);
+      toast(`Failed to create category: ${error.message}`);
     }
   });
 
-  const updateProduct = useMutation({
-    mutationFn: async ({ id, ...productData }: any) => {
+  const updateCategory = useMutation({
+    mutationFn: async ({ id, ...categoryData }: any) => {
       const { data, error } = await supabase
-        .from('products')
-        .update(productData)
+        .from('categories')
+        .update(categoryData)
         .eq('id', id)
         .eq('user_id', user?.id)
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          )
-        `)
+        .select()
         .single();
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast('Product updated successfully!');
+      toast('Category updated successfully!');
     },
     onError: (error: any) => {
-      toast(`Failed to update product: ${error.message}`);
+      toast(`Failed to update category: ${error.message}`);
     }
   });
 
-  const deleteProduct = useMutation({
+  const deleteCategory = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('products')
+        .from('categories')
         .delete()
         .eq('id', id)
         .eq('user_id', user?.id);
@@ -98,20 +82,21 @@ export const useProducts = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast('Product deleted successfully!');
+      toast('Category deleted successfully!');
     },
     onError: (error: any) => {
-      toast(`Failed to delete product: ${error.message}`);
+      toast(`Failed to delete category: ${error.message}`);
     }
   });
 
   return {
-    products,
+    categories,
     isLoading,
     error,
-    createProduct,
-    updateProduct,
-    deleteProduct
+    createCategory,
+    updateCategory,
+    deleteCategory
   };
 };
