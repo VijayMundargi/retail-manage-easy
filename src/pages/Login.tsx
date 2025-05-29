@@ -37,7 +37,7 @@ const Login = () => {
           title: "Login Successful",
           description: "Welcome back to RetailPro!",
         });
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast({
