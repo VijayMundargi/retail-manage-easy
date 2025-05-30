@@ -229,6 +229,14 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      get_sales_report: {
+        Args: { start_date: string; end_date: string }
+        Returns: {
+          total_sales: number
+          total_revenue: number
+          avg_order_value: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
