@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
 import { useSales } from '@/hooks/useSales';
 import { generateBillPDF } from '@/utils/pdfUtils';
 import { Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from '@/components/ui/sonner';
 import { Minus, Plus } from 'lucide-react';
 
 const CustomerStore = () => {
@@ -78,7 +79,13 @@ const CustomerStore = () => {
         customer_phone: customerUser.phone,
         total_amount: getTotalAmount(),
         status: 'completed',
-        sale_date: new Date().toISOString()
+        sale_date: new Date().toISOString(),
+        items: cart.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity
+        }))
       };
 
       const sale = await createSale.mutateAsync(saleData);
