@@ -22,6 +22,11 @@ export const useSales = () => {
             name,
             email
           ),
+          customer_users (
+            id,
+            name,
+            email
+          ),
           sale_items (
             id,
             quantity,
@@ -30,7 +35,11 @@ export const useSales = () => {
             products (
               id,
               name,
-              sku
+              sku,
+              categories (
+                id,
+                name
+              )
             )
           )
         `)
@@ -54,10 +63,29 @@ export const useSales = () => {
         .single();
 
       if (error) throw error;
+
+      // If there are cart items, create sale items
+      if (saleData.items) {
+        const saleItems = saleData.items.map((item: any) => ({
+          sale_id: data.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('sale_items')
+          .insert(saleItems);
+
+        if (itemsError) throw itemsError;
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast('Sale created successfully!');
     },
     onError: (error: any) => {

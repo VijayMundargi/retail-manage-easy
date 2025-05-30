@@ -1,136 +1,160 @@
-
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import ChatButton from './ChatButton';
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Package,
-  TrendingUp,
-  Users,
-  FileText,
-  Settings,
-  LogOut,
-  Menu,
-  X
-} from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import { ModeToggle } from './ModeToggle';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from './ui/button';
+import { Menu } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout = ({ children }: LayoutProps) => {
-  const location = useLocation();
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
 
-  const navigationItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/products', icon: Package, label: 'Products' },
-    { path: '/inventory', icon: ShoppingCart, label: 'Inventory' },
-    { path: '/pos', icon: ShoppingCart, label: 'POS System' },
-    { path: '/sales', icon: TrendingUp, label: 'Sales' },
-    { path: '/customers', icon: Users, label: 'Customers' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
-
-  const handleLogout = () => {
-    // Clear any stored authentication data
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
-    
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
-    
-    // Redirect to login page
+  const handleSignOut = async () => {
+    await signOut();
     navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`bg-white shadow-lg transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-16'} flex flex-col`}>
-        {/* Header */}
-        <div className="h-16 border-b border-gray-200 flex items-center justify-between px-4">
-          {isSidebarOpen && (
-            <h1 className="text-xl font-bold text-blue-600">RetailPro</h1>
-          )}
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="sm" className="lg:hidden">
+            <Menu className="h-5 w-5" />
           </Button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
-          {navigationItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center px-3 py-3 rounded-lg transition-colors duration-200 ${
-                  isActive 
-                    ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700' 
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                {isSidebarOpen && <span className="ml-3 font-medium">{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User Section */}
-        <div className="border-t border-gray-200 p-4">
-          <Button 
-            variant="ghost" 
-            className="w-full flex items-center justify-start text-gray-600 hover:text-gray-900"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-5 w-5" />
-            {isSidebarOpen && <span className="ml-3">Logout</span>}
-          </Button>
-        </div>
-      </div>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 p-0">
+          <div className="flex h-20 items-center justify-center rounded-md border-b">
+            <Link to="/dashboard" className="flex items-center space-x-2 font-semibold">
+              <span>RetailPro</span>
+            </Link>
+          </div>
+          <NavigationMenu>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Link to="/dashboard">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Dashboard
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/products">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Products
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/inventory">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Inventory
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/pos">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    POS
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/sales">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Sales
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/customers">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Customers
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/reports">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Reports
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/settings">
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Settings
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </SheetContent>
+      </Sheet>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-between px-6">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-semibold text-gray-800">
-              {navigationItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
-            </h2>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">Welcome, Admin</div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+      <div className="lg:pl-64">
+        {/* Top Navigation */}
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="lg:hidden">
+              <Menu className="h-5 w-5" />
             </Button>
+          </SheetTrigger>
+
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1"></div>
+            <div className="flex items-center gap-x-4 lg:gap-x-6">
+              <NotificationBell />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="https://github.com/shadcn.png" alt="Shadcn" />
+                      <AvatarFallback>CN</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Link to="/settings">Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </header>
+        </div>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
-          {children}
+        <main className="py-10">
+          <div className="px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
         </main>
       </div>
-      
-      {/* Chat Button */}
-      <ChatButton />
     </div>
   );
 };

@@ -153,6 +153,7 @@ const Register = () => {
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="manager">Manager</SelectItem>
                   <SelectItem value="cashier">Cashier</SelectItem>
+                  <SelectItem value="customer">Customer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -187,6 +188,12 @@ const Register = () => {
               Already have an account?{' '}
               <Link to="/login" className="text-blue-600 hover:underline">
                 Sign in
+              </Link>
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Are you a customer?{' '}
+              <Link to="/customer-login" className="text-blue-600 hover:underline">
+                Customer Login
               </Link>
             </p>
           </div>

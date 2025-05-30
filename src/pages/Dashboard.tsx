@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { TrendingUp, DollarSign, Package, Users, AlertTriangle, Loader2 } from '
 import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useSales } from '@/hooks/useSales';
+import CategoryChart from '@/components/CategoryChart';
 
 const Dashboard = () => {
   const { products, isLoading: productsLoading } = useProducts();
@@ -88,9 +88,9 @@ const Dashboard = () => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sales Trend Chart */}
-          <Card>
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Sales Trend</CardTitle>
               <CardDescription>Monthly sales and revenue overview</CardDescription>
@@ -115,6 +115,20 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
+          {/* Category Revenue Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Category Revenue</CardTitle>
+              <CardDescription>Revenue breakdown by category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CategoryChart />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Products Chart */}
           <Card>
             <CardHeader>
@@ -134,6 +148,31 @@ const Dashboard = () => {
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-500">
                     No products available
+                  </div>
+                )}
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Stock Levels Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Stock Levels</CardTitle>
+              <CardDescription>Current inventory status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                {products.length > 0 ? (
+                  <BarChart data={products.slice(0, 10).map(p => ({ name: p.name, stock: p.stock }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="stock" fill="#f59e0b" />
+                  </BarChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    No inventory data available
                   </div>
                 )}
               </ResponsiveContainer>

@@ -30,6 +30,39 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_users: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          password_hash: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          password_hash: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          password_hash?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
@@ -59,6 +92,36 @@ export type Database = {
           name?: string
           phone?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
@@ -193,7 +256,11 @@ export type Database = {
       }
       sales: {
         Row: {
+          customer_email: string | null
           customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          customer_user_id: string | null
           id: string
           sale_date: string | null
           status: string | null
@@ -201,7 +268,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          customer_email?: string | null
           customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          customer_user_id?: string | null
           id?: string
           sale_date?: string | null
           status?: string | null
@@ -209,7 +280,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          customer_email?: string | null
           customer_id?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          customer_user_id?: string | null
           id?: string
           sale_date?: string | null
           status?: string | null
@@ -222,6 +297,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_customer_user_id_fkey"
+            columns: ["customer_user_id"]
+            isOneToOne: false
+            referencedRelation: "customer_users"
             referencedColumns: ["id"]
           },
         ]
