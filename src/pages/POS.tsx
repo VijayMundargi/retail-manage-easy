@@ -24,7 +24,7 @@ const POS = () => {
   const { createSale } = useSales();
   
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
+  const [selectedCustomer, setSelectedCustomer] = useState<string>('walk-in');
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -90,7 +90,7 @@ const POS = () => {
     
     try {
       const saleData = {
-        customer_id: selectedCustomer || null,
+        customer_id: selectedCustomer === 'walk-in' ? null : selectedCustomer,
         total_amount: getTotalAmount(),
         status: 'completed',
         sale_date: new Date().toISOString()
@@ -100,7 +100,7 @@ const POS = () => {
       
       // Clear cart after successful sale
       setCart([]);
-      setSelectedCustomer('');
+      setSelectedCustomer('walk-in');
       toast('Sale completed successfully!');
     } catch (error) {
       console.error('Error processing sale:', error);
@@ -181,7 +181,7 @@ const POS = () => {
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Walk-in Customer</SelectItem>
+                      <SelectItem value="walk-in">Walk-in Customer</SelectItem>
                       {customers.map(customer => (
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.name}
