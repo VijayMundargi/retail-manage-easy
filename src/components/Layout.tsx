@@ -31,6 +31,7 @@ const Layout = ({ children }: LayoutProps) => {
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/products', icon: Package, label: 'Products' },
     { path: '/inventory', icon: ShoppingCart, label: 'Inventory' },
+    { path: '/pos', icon: ShoppingCart, label: 'POS System' },
     { path: '/sales', icon: TrendingUp, label: 'Sales' },
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/reports', icon: FileText, label: 'Reports' },

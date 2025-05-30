@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,8 +6,16 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download, Calendar, TrendingUp, File } from 'lucide-react';
 import { downloadReportAsExcel, type ReportData } from '@/utils/excelUtils';
 import { toast } from '@/components/ui/sonner';
+import { useProducts } from '@/hooks/useProducts';
+import { useCustomers } from '@/hooks/useCustomers';
+import { useSales } from '@/hooks/useSales';
 
 const Reports = () => {
+  const { products } = useProducts();
+  const { customers } = useCustomers();
+  const { sales, getDashboardStats } = useSales();
+  const stats = getDashboardStats();
+
   const reports: ReportData[] = [
     { name: 'Daily Sales Report', type: 'daily' },
     { name: 'Weekly Revenue Report', type: 'weekly' },
@@ -17,7 +26,17 @@ const Reports = () => {
 
   const handleDownload = (report: ReportData) => {
     try {
-      downloadReportAsExcel(report);
+      // Create report data based on actual user data
+      const reportData = {
+        ...report,
+        data: {
+          products: products,
+          customers: customers,
+          sales: sales,
+          stats: stats
+        }
+      };
+      downloadReportAsExcel(reportData);
       toast(`${report.name} downloaded successfully!`);
     } catch (error) {
       toast(`Failed to download ${report.name}. Please try again.`);
@@ -29,39 +48,39 @@ const Reports = () => {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-600">Generate and download business reports</p>
+          <p className="text-gray-600">Generate and download business reports based on your data</p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reports Generated</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">127</div>
-              <p className="text-xs text-muted-foreground">This month</p>
+              <div className="text-2xl font-bold">{stats.totalSalesCount}</div>
+              <p className="text-xs text-muted-foreground">Completed transactions</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Downloads</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <Download className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">89</div>
-              <p className="text-xs text-muted-foreground">This month</p>
+              <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">From all sales</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+              <CardTitle className="text-sm font-medium">Products</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground">Auto-generated</p>
+              <div className="text-2xl font-bold">{products.length}</div>
+              <p className="text-xs text-muted-foreground">Active products</p>
             </CardContent>
           </Card>
         </div>
@@ -70,7 +89,7 @@ const Reports = () => {
         <Card>
           <CardHeader>
             <CardTitle>Available Reports</CardTitle>
-            <CardDescription>Generate and download business intelligence reports in Excel format</CardDescription>
+            <CardDescription>Generate and download business intelligence reports based on your actual data</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -87,11 +106,11 @@ const Reports = () => {
                     <div>
                       <h4 className="font-medium">{report.name}</h4>
                       <p className="text-sm text-gray-600">
-                        {report.type === 'daily' && 'Sales summary for today'}
-                        {report.type === 'weekly' && 'Revenue analysis for this week'}
-                        {report.type === 'monthly' && 'Inventory status for this month'}
-                        {report.type === 'analytics' && 'Customer behavior insights'}
-                        {report.type === 'products' && 'Top and bottom performing products'}
+                        {report.type === 'daily' && `Sales data for today (${stats.totalSalesCount} sales)`}
+                        {report.type === 'weekly' && `Revenue analysis (${products.length} products)`}
+                        {report.type === 'monthly' && `Inventory report (${products.length} items)`}
+                        {report.type === 'analytics' && `Customer insights (${customers.length} customers)`}
+                        {report.type === 'products' && `Product performance (${products.length} products)`}
                       </p>
                       <span className="inline-block px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
                         Ready
