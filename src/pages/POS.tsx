@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,6 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCustomers } from '@/hooks/useCustomers';
 import { useSales } from '@/hooks/useSales';
 import { toast } from '@/components/ui/sonner';
-import { generateBillPDF } from '@/utils/pdfUtils';
 
 interface CartItem {
   product: any;
@@ -93,40 +93,15 @@ const POS = () => {
         customer_id: selectedCustomer === 'walk-in' ? null : selectedCustomer,
         total_amount: getTotalAmount(),
         status: 'completed',
-        sale_date: new Date().toISOString(),
-        items: cart.map(item => ({
-          product_id: item.product.id,
-          quantity: item.quantity,
-          unit_price: item.product.price,
-          total_price: item.product.price * item.quantity
-        }))
+        sale_date: new Date().toISOString()
       };
 
-      const sale = await createSale.mutateAsync(saleData);
-      
-      // Generate PDF bill
-      const customer = customers.find(c => c.id === selectedCustomer);
-      const billData = {
-        saleId: sale.id,
-        customerName: customer?.name || 'Walk-in Customer',
-        customerEmail: customer?.email,
-        customerPhone: customer?.phone,
-        items: cart.map(item => ({
-          name: item.product.name,
-          quantity: item.quantity,
-          unitPrice: item.product.price,
-          totalPrice: item.product.price * item.quantity
-        })),
-        totalAmount: getTotalAmount(),
-        date: sale.sale_date
-      };
-
-      generateBillPDF(billData);
+      await createSale.mutateAsync(saleData);
       
       // Clear cart after successful sale
       setCart([]);
       setSelectedCustomer('walk-in');
-      toast('Sale completed successfully! Bill downloaded as PDF.');
+      toast('Sale completed successfully!');
     } catch (error) {
       console.error('Error processing sale:', error);
       toast('Failed to process sale');

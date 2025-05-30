@@ -18,9 +18,6 @@ import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
 import CustomerStore from "./pages/CustomerStore";
 import POS from "./pages/POS";
-import { CustomerAuthProvider } from "@/contexts/CustomerAuthContext";
-import CustomerLogin from "./pages/CustomerLogin";
-import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -31,58 +28,54 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <CustomerAuthProvider>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/store" element={<CustomerStore />} />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/products" element={
-                <ProtectedRoute>
-                  <Products />
-                </ProtectedRoute>
-              } />
-              <Route path="/inventory" element={
-                <ProtectedRoute>
-                  <Inventory />
-                </ProtectedRoute>
-              } />
-              <Route path="/pos" element={
-                <ProtectedRoute>
-                  <POS />
-                </ProtectedRoute>
-              } />
-              <Route path="/sales" element={
-                <ProtectedRoute>
-                  <Sales />
-                </ProtectedRoute>
-              } />
-              <Route path="/customers" element={
-                <ProtectedRoute>
-                  <Customers />
-                </ProtectedRoute>
-              } />
-              <Route path="/reports" element={
-                <ProtectedRoute>
-                  <Reports />
-                </ProtectedRoute>
-              } />
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } />
-              <Route path="/customer-login" element={<CustomerLogin />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </CustomerAuthProvider>
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/store" element={<CustomerStore />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory" element={
+              <ProtectedRoute>
+                <Inventory />
+              </ProtectedRoute>
+            } />
+            <Route path="/pos" element={
+              <ProtectedRoute>
+                <POS />
+              </ProtectedRoute>
+            } />
+            <Route path="/sales" element={
+              <ProtectedRoute>
+                <Sales />
+              </ProtectedRoute>
+            } />
+            <Route path="/customers" element={
+              <ProtectedRoute>
+                <Customers />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
